@@ -1,5 +1,5 @@
 Package: TagR
-Title: A collection of R functions to organize, clean and visualize data from the popular korfball application TeamTV.
+Title: A collection of R functions to organize, clean and visualize data from the popular korfball application TeamTV
 Version: 0.0.0.9000
 Authors@R: 
     person("Mano", "van Holten", , "mholten60@gmail.com", role = c("aut", "cre"))
@@ -14,8 +14,7 @@ LazyData: true
 Imports: 
     dplyr,
     ggplot2,
-    stringr,
-    tidyr
+    stringr
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

@@ -1,3 +1,12 @@
+#' @importFrom dplyr mutate transmute across select count arrange slice_head distinct
+#' @importFrom ggplot2 ggplot aes geom_tile scale_y_reverse scale_fill_manual labs
+#'   theme_minimal theme geom_text coord_cartesian element_text element_blank margin
+#' @importFrom stringr str_squish
+#' @importFrom utils adist
+NULL
+
+utils::globalVariables(".data")
+
 #' Plot missingness patterns for TeamTV shot data
 #'
 #' Pattern-based missingness heatmap (like md.pattern/VIM-style): complete patterns
@@ -8,21 +17,16 @@
 #' - `leg` is only relevant for type in c("SHORT","LONG","FREEBALL").
 #'   For other shot types, leg is treated as N/A (not missing).
 #'
-#' #' @importFrom dplyr mutate transmute across select count arrange slice_head distinct
-#' @importFrom tidyr pivot_longer
-#' @importFrom ggplot2 ggplot aes geom_tile scale_y_reverse scale_fill_manual labs
-#'   theme_minimal theme geom_text coord_cartesian element_text element_blank margin
-#' @importFrom stringr str_squish
 #' @param df A data.frame containing TeamTV export columns.
 #' @param person Optional string. If provided, filters to the closest matching
 #'   `full_name` (fuzzy match). Use `NULL` for all players.
 #' @param max_patterns Maximum number of patterns to display (most frequent kept).
 #' @return A ggplot object.
 #' @export
+
 tagr_plot_missingness <- function(df, person = NULL, max_patterns = 30) {
   # ---- packages ----
   if (!requireNamespace("dplyr", quietly = TRUE)) stop("Install dplyr", call. = FALSE)
-  if (!requireNamespace("tidyr", quietly = TRUE)) stop("Install tidyr", call. = FALSE)
   if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2", call. = FALSE)
   if (!requireNamespace("stringr", quietly = TRUE)) stop("Install stringr", call. = FALSE)
 

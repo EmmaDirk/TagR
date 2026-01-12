@@ -28,6 +28,4 @@ Rules:
 \item \code{leg} is only relevant for type in c("SHORT","LONG","FREEBALL").
 For other shot types, leg is treated as N/A (not missing).
 }
-
-#' @importFrom dplyr mutate transmute across select count arrange slice_head distinct
 }
