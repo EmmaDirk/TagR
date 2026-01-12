@@ -3,7 +3,7 @@ Title: A collection of R functions to organize, clean and visualize data from th
 Version: 0.0.0.9000
 Authors@R: 
     person("Mano", "van Holten", , "mholten60@gmail.com", role = c("aut", "cre"))
-Description: This package formats data from the teamTV application, and provides various functions to summarize, analyze and visualize the data.
+Description: This package formats data from the TeamTV application and provides tools to summarize, analyze, and visualize tagged korfball shot data. TeamTV records shots on the korf as tagged events. TagR simplifies working with these data in R.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
