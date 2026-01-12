@@ -1,9 +1,9 @@
 Package: TagR
-Title: What the Package Does (One Line, Title Case)
+Title: A collection of R functions to organize, clean and visualize data from the popular korfball application TeamTV.
 Version: 0.0.0.9000
 Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+    person("Mano", "van Holten", , "mholten60@gmail.com", role = c("aut", "cre"))
+Description: This package formats data from the teamTV application, and provides various functions to summarize, analyze and visualize the data.
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
