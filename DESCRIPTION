@@ -1,6 +1,6 @@
 Package: TagR
 Title: A collection of R functions to organize, clean and visualize data from the popular korfball application TeamTV
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: 
     person("Mano", "van Holten", , "mholten60@gmail.com", role = c("aut", "cre"))
 Description: This package formats data from the TeamTV application and provides tools to summarize, analyze, and visualize tagged korfball shot data. TeamTV records shots on the korf as tagged events. TagR simplifies working with these data in R.
