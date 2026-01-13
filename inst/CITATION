@@ -2,8 +2,9 @@ bibentry(
   bibtype = "Manual",
   title   = "TagR: Tools for TeamTV Tagged Shot Exports for Korfball",
   author  = person(given = "Mano", family = "van Holten", email = "mholten60@gmail.com"),
-  year    = format(Sys.Date(), "%Y"),
-  note    = "R package",
-  url     = "https://github.com/EmmaDirk/TagR"
+  year    = "2026",
+  note    = "R package version v0.1.0-beta",
+  doi     = "10.5281/zenodo.18233513",
+  url     = "https://doi.org/10.5281/zenodo.18233513"
 )
 
