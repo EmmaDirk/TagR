@@ -18,38 +18,129 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-The goal of TagR is to ...
+TagR helps you work with TeamTV “tagged shots” exports for korfball. It provides:
+
+- strict input validation for TeamTV shot exports (column names, types, and coding levels)
+- quick quality checks (missingness patterns)
+- shot location visualizations on a korfball half-field
+- team descriptives tables + plots for coaching dashboards
+- simple per-player analysis plots (binomial trends for distance, pressure, and shot count)
+- a leg preference slider for comparing players at a glance
 
 ## Installation
 
-You can install the development version of TagR from [GitHub](https://github.com/) with:
+You can install the development version of TagR from GitHub with:
 
 ``` r
 # install.packages("pak")
 pak::pak("EmmaDirk/TagR")
 ```
 
-## Example
+## Data format
 
-This is a basic example which shows you how to solve a common problem:
+Most TagR functions expect a TeamTV shot export with the same structure as the example dataset shipped with the package:
 
-```{r example}
+```{r}
 library(TagR)
-## basic example code
+
+str(shots, 1)
 ```
 
-What is special about using `README.Rmd` instead of just `README.md`? You can include R chunks like so:
+## Input validation
 
-```{r cars}
-summary(cars)
+TagR is strict on purpose: if TeamTV changes its export format or coding, TagR will error with an informative message.
+
+```{r}
+validate_teamtv_shots(shots)
 ```
 
-You'll still need to render `README.Rmd` regularly, to keep `README.md` up-to-date. `devtools::build_readme()` is handy for this.
+If there are no problems, the validator returns invisibly (no output).
 
-You can also embed plots, for example:
+## Missingness patterns
 
-```{r pressure, echo = FALSE}
-plot(pressure)
+A quick way to see missingness patterns and whether “onbekend” values are effectively treated as missing.
+
+```{r}
+p <- tagr_plot_missingness(shots)
+p
 ```
 
-In that case, don't forget to commit and push the resulting figure files, so they display on GitHub and CRAN.
+You can also focus on one player (fuzzy match on `full_name`):
+
+```{r}
+p <- tagr_plot_missingness(shots, person = "Joost Dek")
+p
+```
+
+## Shot location plots
+
+TagR includes shot plotting functions that draw a korfball half-field (20 x 20 m) with the korf and the oval zone, then overlays shot locations.
+
+```{r, eval=FALSE}
+# Example: result-colored plot (GOAL vs MISS) with filters
+p <- tagr_plot_shots_result(
+  shots,
+  player = "11",
+  filter_type = c("LONG", "SHORT"),
+  filter_pressure = c("NONE", "MEDIUM"),
+  filter_leg = c("LEFT", "RIGHT")
+)
+p
+```
+
+Notes:
+- shots are shifted to the correct coordinate origin used by the TeamTV export
+- shots outside the pitch are clamped to the pitch border
+- the pitch styling is fixed and not exposed as user options
+
+## Team descriptives (tables + plots)
+
+Compute goal percentages by key categories (pressure, distance band, shot type, shot count band, leg). Returns plain data.frames so they are easy to inspect and test.
+
+```{r}
+tabs <- tagr_team_overview_tables(shots)
+
+names(tabs)
+tabs$pressure
+tabs$type
+```
+
+Plot one attribute as a quick bar chart:
+
+```{r}
+tagr_team_overview_plot(shots, attribute = "pressure")
+tagr_team_overview_plot(shots, attribute = "distance")
+```
+
+Filter to a single player (fuzzy match on name or exact match on number):
+
+```{r}
+tagr_team_overview_plot(shots, attribute = "type", player = "11")
+```
+
+## Player analysis (binomial trend plots)
+
+TagR provides simple binomial model visualizations to show how scoring probability changes with:
+- distance (capped at 10 m)
+- pressure (NONE < MEDIUM < HIGH)
+- shot count band (1, 2, 3, 4+)
+
+Player plots optionally include the team line/points for comparison, and you can restrict to LONG/SHORT only.
+
+```{r}
+tagr_plot_prob_by_distance(shots)
+tagr_plot_prob_by_distance(shots, player = "11", long_short_only = TRUE)
+
+tagr_plot_prob_by_pressure(shots, player = "Joost Dek")
+tagr_plot_prob_by_shot_count(shots, player = "11")
+```
+
+## Leg preference slider
+
+A compact visualization that places all players on a left-to-right “leg preference” slider. It uses only SHORT, LONG, and FREE-BALL shots and combines volume and success per leg (BOTH pulls toward the center). The y-axis shows number of shots, and each dot is labeled with the player name/number.
+
+```{r}
+tagr_plot_leg_preference_slider(shots)
+```
+
+
