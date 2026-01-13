@@ -1,0 +1,22 @@
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/LICENSE.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/news/index.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/shots.html</loc></url>
+<url><loc>/reference/tagr_plot_leg_preference_slider.html</loc></url>
+<url><loc>/reference/tagr_plot_missingness.html</loc></url>
+<url><loc>/reference/tagr_plot_prob_by_distance.html</loc></url>
+<url><loc>/reference/tagr_plot_prob_by_pressure.html</loc></url>
+<url><loc>/reference/tagr_plot_prob_by_shot_count.html</loc></url>
+<url><loc>/reference/tagr_plot_shots_leg.html</loc></url>
+<url><loc>/reference/tagr_plot_shots_pressure.html</loc></url>
+<url><loc>/reference/tagr_plot_shots_result.html</loc></url>
+<url><loc>/reference/tagr_plot_shots_type.html</loc></url>
+<url><loc>/reference/tagr_team_overview_plot.html</loc></url>
+<url><loc>/reference/tagr_team_overview_tables.html</loc></url>
+<url><loc>/reference/validate_teamtv_shots.html</loc></url>
+</urlset>
+
