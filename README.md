@@ -96,6 +96,8 @@ p <- TagR::tagr_plot_shots_result(TagR::shots)
 p
 ```
 
+<img src="man/figures/README-unnamed-chunk-4-1.png" width="100%" />
+
 Like many other functions in this package, plotting functions accept an
 optional `player` argument (fuzzy match on name or exact match on
 number).
@@ -105,6 +107,8 @@ number).
 p <- TagR::tagr_plot_shots_pressure(TagR::shots, player = "11")
 p
 ```
+
+<img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
 
 ## Team descriptives (tables + plots)
 

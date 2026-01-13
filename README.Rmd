@@ -57,7 +57,7 @@ p
 ## Shot location plots
 
 TagR includes visualisations of shot location, filtered in various ways. 
-```{r, eval=FALSE}
+```{r}
 # Example: result-colored plot (GOAL vs MISS) 
 p <- TagR::tagr_plot_shots_result(TagR::shots)
 p
@@ -65,7 +65,7 @@ p
 
 Like many other functions in this package, plotting functions accept an optional `player` argument (fuzzy match on name or exact match on number). 
 
-```{r, eval=FALSE}
+```{r}
 # Example: plot shots for player number 11 only
 p <- TagR::tagr_plot_shots_pressure(TagR::shots, player = "11")
 p
