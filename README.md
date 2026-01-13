@@ -10,8 +10,6 @@
 TagR helps you work with TeamTV “tagged shots” exports for korfball. It
 provides:
 
-- strict input validation for TeamTV shot exports (column names, types,
-  and coding levels)
 - quick quality checks (missingness patterns)
 - shot location visualizations on a korfball half-field
 - team descriptives tables + plots for coaching dashboards
@@ -94,7 +92,7 @@ TagR includes visualisations of shot location, filtered in various ways.
 
 ``` r
 # Example: result-colored plot (GOAL vs MISS) 
-p <- tagr_plot_shots_result(shots)
+p <- TagR::tagr_plot_shots_result(TagR::shots)
 p
 ```
 
@@ -104,7 +102,7 @@ number).
 
 ``` r
 # Example: plot shots for player number 11 only
-p <- tagr_plot_shots_pressure(shots, player = "11")
+p <- TagR::tagr_plot_shots_pressure(TagR::shots, player = "11")
 p
 ```
 
@@ -164,8 +162,11 @@ tagr_team_overview_plot(shots, attribute = "type", player = "11")
 ## Player analysis (binomial trend plots)
 
 TagR provides simple visualizations to show how scoring probability
-changes with: - distance (capped at 10 m) - pressure (NONE \< MEDIUM \<
-HIGH) - shot count band (1, 2, 3, 4+)
+changes with:
+
+- distance (capped at 10 m)
+- pressure (NONE \< MEDIUM \< HIGH)
+- shot count band (1, 2, 3, 4+)
 
 Player plots optionally include the team line/points for comparison, and
 you can restrict to LONG/SHORT shots only, including only shots from
