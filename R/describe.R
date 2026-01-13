@@ -1,5 +1,5 @@
 #' @importFrom dplyr mutate group_by summarise arrange filter count slice_head
-#' @importFrom ggplot2 ggplot aes geom_col labs theme_minimal theme element_text
+#' @importFrom ggplot2 ggplot aes geom_col labs theme_minimal theme element_text geom_segment geom_vline geom_point geom_text scale_x_continuous margin
 #' @importFrom utils adist
 NULL
 
@@ -411,4 +411,107 @@ tagr_team_overview_plot <- function(
       ggplot2::theme_minimal(base_size = 11) +
       ggplot2::theme(axis.text.x = ggplot2::element_text(angle = 25, hjust = 1))
   }
+}
+
+#' Leg preference slider for all players
+#'
+#' Places each player on a left-to-right slider based on leg usage and success.
+#' BOTH pulls toward the center. Only uses shot types SHORT, LONG, FREE-BALL.
+#'
+#' @param df A TeamTV shots data.frame.
+#' @return A ggplot object.
+#' @export
+tagr_plot_leg_preference_slider <- function(df) {
+
+  if (!requireNamespace("dplyr", quietly = TRUE)) stop("Install dplyr", call. = FALSE)
+  if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2", call. = FALSE)
+
+  validate_teamtv_shots(df)
+
+  norm_code <- function(x) {
+    x <- trimws(as.character(x))
+    x <- toupper(x)
+    x <- gsub("[ _]+", "-", x)
+    x
+  }
+
+  df <- df |>
+    dplyr::mutate(
+      type = norm_code(.data$type),
+      leg = norm_code(.data$leg),
+      result = norm_code(.data$result)
+    )
+
+  df$result[df$result == "ONBEKEND"] <- NA_character_
+  df$leg[df$leg == "ONBEKEND"] <- NA_character_
+
+  df <- df |>
+    dplyr::filter(.data$type %in% c("SHORT", "LONG", "FREE-BALL")) |>
+    dplyr::filter(!is.na(.data$result)) |>
+    dplyr::filter(.data$result %in% c("GOAL", "MISS")) |>
+    dplyr::filter(!is.na(.data$full_name)) |>
+    dplyr::filter(!is.na(.data$leg)) |>
+    dplyr::filter(.data$leg %in% c("LEFT", "RIGHT", "BOTH"))
+
+  if (!nrow(df)) stop("No rows available after filtering to types SHORT/LONG/FREE-BALL and valid leg/result.", call. = FALSE)
+
+  df <- df |>
+    dplyr::mutate(is_goal = .data$result == "GOAL")
+
+  per_player_leg <- df |>
+    dplyr::group_by(.data$full_name, .data$number, .data$leg) |>
+    dplyr::summarise(
+      shots = dplyr::n(),
+      goals = sum(.data$is_goal, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    dplyr::mutate(
+      goal_rate = ifelse(.data$shots > 0, .data$goals / .data$shots, 0),
+      weight = .data$shots * (0.5 + .data$goal_rate)
+    )
+
+  player_idx <- per_player_leg |>
+    dplyr::group_by(.data$full_name, .data$number) |>
+    dplyr::summarise(
+      w_left  = sum(.data$weight[.data$leg == "LEFT"],  na.rm = TRUE),
+      w_right = sum(.data$weight[.data$leg == "RIGHT"], na.rm = TRUE),
+      w_both  = sum(.data$weight[.data$leg == "BOTH"],  na.rm = TRUE),
+      shots_total = sum(.data$shots, na.rm = TRUE),
+      .groups = "drop"
+    ) |>
+    dplyr::mutate(
+      denom = .data$w_left + .data$w_right + .data$w_both,
+      leg_index = ifelse(.data$denom > 0, (.data$w_right - .data$w_left) / .data$denom, NA_real_),
+      label = ifelse(is.na(.data$number) | .data$number == "", .data$full_name, paste0(.data$full_name, " (#", .data$number, ")"))
+    ) |>
+    dplyr::filter(!is.na(.data$leg_index)) |>
+    dplyr::arrange(.data$shots_total)
+
+  if (!nrow(player_idx)) stop("No players had sufficient leg data to compute a slider position.", call. = FALSE)
+
+  ggplot2::ggplot(player_idx, ggplot2::aes(x = .data$leg_index, y = .data$shots_total)) +
+    ggplot2::geom_segment(
+      ggplot2::aes(x = -1, xend = 1, y = 0, yend = 0),
+      inherit.aes = FALSE,
+      linewidth = 1
+    ) +
+    ggplot2::geom_vline(xintercept = 0, linetype = "dashed") +
+    ggplot2::geom_point(alpha = 0.8) +
+    ggplot2::geom_text(
+      ggplot2::aes(label = .data$label),
+      hjust = -0.05,
+      vjust = 0.3,
+      size = 3
+    ) +
+    ggplot2::scale_x_continuous(limits = c(-1, 1), breaks = c(-1, -0.5, 0, 0.5, 1)) +
+    ggplot2::labs(
+      title = "Leg preference slider (all players)",
+      subtitle = "Based on shot volume and success by leg. BOTH pulls toward center. Types: SHORT, LONG, FREE-BALL.",
+      x = "LEFT \u2190 preference index \u2192 RIGHT",
+      y = "Number of shots"
+    ) +
+    ggplot2::theme_minimal(base_size = 11) +
+    ggplot2::theme(
+      plot.margin = ggplot2::margin(10, 80, 10, 10)
+    )
 }
