@@ -66,6 +66,8 @@ validate_teamtv_shots <- function(x) {
     if (!is.numeric(v)) return(FALSE)
 
     v2 <- v[!is.na(v)]
+    if (!length(v2)) return(TRUE)
+
     all(abs(v2 - round(v2)) < .Machine$double.eps^0.5)
   }
 
@@ -106,6 +108,7 @@ validate_teamtv_shots <- function(x) {
   # enforce column order as well to catch subtle export format changes
   if (!identical(got_names, exp_names)) {
     stop(
+      "Column-name mismatch.\n",
       "Column order differs from the expected TeamTV schema.\n",
       "This often indicates an export-format change. Reorder columns or update TagR.",
       call. = FALSE
@@ -155,18 +158,18 @@ validate_teamtv_shots <- function(x) {
   # check that a given categorical column contains only allowed codes
   # na values are allowed and ignored by this check
   check_allowed <- function(col, allowed, label) {
-    v <- x[[col]]
-    v0 <- v
-
-    # drop na before checking allowed values
-    v <- v[!is.na(v)]
+    v0 <- x[[col]]
 
     # type guard to avoid calling string functions on non character data
-    if (!is.character(v)) stopf("Column '%s' must be character to validate values.", col)
+    if (!is.character(v0)) stopf("Column '%s' must be character to validate values.", col)
+
+    # drop na before checking allowed values
+    keep <- !is.na(v0)
+    if (!any(keep)) return(invisible(TRUE))
 
     # normalize values then detect which original values are not allowed
-    vn <- norm_token(v)
-    bad <- sort(unique(v0[!is.na(v0)][!vn %in% allowed]))
+    vn <- norm_token(v0[keep])
+    bad <- sort(unique(v0[keep][!vn %in% allowed]))
 
     # stop with details if any unknown codes appear
     if (length(bad) > 0) {
@@ -178,6 +181,8 @@ validate_teamtv_shots <- function(x) {
         call. = FALSE
       )
     }
+
+    invisible(TRUE)
   }
 
   # run allowed value checks for each coded column

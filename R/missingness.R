@@ -51,7 +51,7 @@ tagr_plot_missingness <- function(df, person = NULL, max_patterns = 30) {
   # stop early if required columns are not present
   missing_cols <- setdiff(vars, names(df))
   if (length(missing_cols)) {
-    stop("Missing required columns: ", paste(missing_cols, collapse = ", "), call. = FALSE)
+    stop("Column-name mismatch", call. = FALSE)
   }
 
   # convert common unknown tokens to na for character vectors

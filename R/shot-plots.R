@@ -303,6 +303,9 @@ tagr_heatmap <- function(df,
   if (!requireNamespace("dplyr", quietly = TRUE)) stop("Install dplyr", call. = FALSE)
 
   # validate expected columns and basic types
+  if (!is.data.frame(df)) stop("Column-name mismatch.", call. = FALSE)
+  if (!all(c("x", "y") %in% names(df))) stop("Column-name mismatch.", call. = FALSE)
+
   validate_teamtv_shots(df)
 
   # select the colouring variable

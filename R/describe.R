@@ -1,4 +1,4 @@
-#' silence R CMD check NOTES about NSE (dplyr/ggplot2) and base function lookups
+# silence R CMD check NOTES about NSE (dplyr/ggplot2) and base function lookups
 utils::globalVariables(c(
   ".data",
   "pressure",
@@ -45,7 +45,7 @@ tagr_team_dashboad <- function(df, max_players = 12) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2", call. = FALSE)
 
   # basic input type check
-  if (!is.data.frame(df)) stop("`df` must be a data.frame.", call. = FALSE)
+  if (!is.data.frame(df)) stop("Column-name mismatch: `df` must be a data.frame.", call. = FALSE)
 
   # validate the teamtv schema and coded values before plotting
   validate_teamtv_shots(df)
@@ -90,7 +90,7 @@ tagr_team_dashboad <- function(df, max_players = 12) {
   needed <- c("full_name", "number", "type", "pressure", "leg", "result", "distance", "shot_count")
   missing_cols <- setdiff(needed, names(df))
   if (length(missing_cols)) {
-    stop("`df` is missing required columns: ", paste(missing_cols, collapse = ", "), call. = FALSE)
+    stop("Column-name mismatch: `df` is missing required columns: ", paste(missing_cols, collapse = ", "), call. = FALSE)
   }
 
   # normalize key fields and create derived grouping bands
@@ -422,7 +422,7 @@ tagr_player_dashboard <- function(df, player) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2", call. = FALSE)
 
   # validate inputs
-  if (!is.data.frame(df)) stop("`df` must be a data.frame.", call. = FALSE)
+  if (!is.data.frame(df)) stop("Column-name mismatch: `df` must be a data.frame.", call. = FALSE)
   if (missing(player) || is.null(player) || trimws(as.character(player)) == "") {
     stop("`player` must be provided (name or shirt number).", call. = FALSE)
   }
@@ -490,7 +490,7 @@ tagr_player_dashboard <- function(df, player) {
   needed <- c("full_name", "number", "type", "pressure", "leg", "result", "distance", "shot_count")
   missing_cols <- setdiff(needed, names(df))
   if (length(missing_cols)) {
-    stop("`df` is missing required columns: ", paste(missing_cols, collapse = ", "), call. = FALSE)
+    stop("Column-name mismatch: `df` is missing required columns: ", paste(missing_cols, collapse = ", "), call. = FALSE)
   }
 
   # normalize key fields and create derived grouping bands
