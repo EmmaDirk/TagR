@@ -1,10 +1,14 @@
 #' @importFrom ggplot2 ggplot aes geom_point coord_fixed theme_void
-#'   geom_rect geom_polygon labs scale_color_manual theme margin
+#'   geom_rect geom_polygon labs scale_color_manual theme margin element_text
 #' @importFrom dplyr mutate
 #' @importFrom utils adist
 NULL
 
 utils::globalVariables(".data")
+
+# ------------------------------------------------------------------------------
+# Pitch geometry + helpers
+# ------------------------------------------------------------------------------
 
 # define fixed half-pitch geometry and a fixed coordinate transform for TeamTV shots
 tagr_pitch_settings <- function() {
@@ -29,45 +33,62 @@ tagr_pitch_settings <- function() {
 tagr_norm_code <- function(x) {
   if (is.null(x)) return(NULL)
   x <- trimws(as.character(x))
+  x <- x[nzchar(x)]
+  if (!length(x)) return(NULL)
   x <- toupper(x)
   x <- gsub("[ _]+", "-", x)
   x
 }
 
 # fuzzy match player by name or match by number
+# now supports 1+ players: player = c("11", "24") or c("Jane Doe", "24")
 tagr_filter_player <- function(df, player, max_dist = 3) {
   if (is.null(player)) return(df)
 
-  player_chr <- trimws(as.character(player))
+  players <- trimws(as.character(player))
+  players <- players[nzchar(players)]
+  if (!length(players)) return(df)
 
-  if (grepl("^[0-9]+$", player_chr)) {
-    out <- df[df$number == player_chr, , drop = FALSE]
-    if (!nrow(out)) stop("No rows found for number '", player_chr, "'.", call. = FALSE)
-    return(out)
+  match_one <- function(p) {
+    # number
+    if (grepl("^[0-9]+$", p)) {
+      out <- df[df$number == p, , drop = FALSE]
+      if (!nrow(out)) stop("No rows found for number '", p, "'.", call. = FALSE)
+      return(out)
+    }
+
+    # fuzzy name
+    nm <- unique(df$full_name)
+    nm <- nm[!is.na(nm)]
+    if (!length(nm)) stop("No non-missing full_name values in df.", call. = FALSE)
+
+    dists <- utils::adist(tolower(p), tolower(trimws(nm)))
+    best_i <- which.min(dists)
+    best_name <- nm[best_i]
+    best_dist <- dists[best_i]
+
+    if (best_dist > max_dist) {
+      stop("No close match for '", p, "'. Closest was '", best_name, "'.", call. = FALSE)
+    }
+
+    out <- df[trimws(df$full_name) == best_name, , drop = FALSE]
+    if (!nrow(out)) stop("Matched name but found 0 rows (unexpected).", call. = FALSE)
+    out
   }
 
-  nm <- unique(df$full_name)
-  nm <- nm[!is.na(nm)]
-  if (!length(nm)) stop("No non-missing full_name values in df.", call. = FALSE)
-
-  target <- player_chr
-  dists <- utils::adist(tolower(target), tolower(trimws(nm)))
-
-  best_i <- which.min(dists)
-  best_name <- nm[best_i]
-  best_dist <- dists[best_i]
-
-  if (best_dist > max_dist) {
-    stop("No close match for '", player_chr, "'. Closest was '", best_name, "'.", call. = FALSE)
-  }
-
-  out <- df[trimws(df$full_name) == best_name, , drop = FALSE]
-  if (!nrow(out)) stop("Matched name but found 0 rows (unexpected).", call. = FALSE)
+  out <- unique(do.call(rbind, lapply(players, match_one)))
+  if (!nrow(out)) stop("No rows left after filtering players.", call. = FALSE)
   out
 }
 
 # apply optional filters, skipping the variable used for colouring
-tagr_apply_filters <- function(df, player = NULL, type = NULL, pressure = NULL, leg = NULL, result = NULL, colour_by = NULL) {
+tagr_apply_filters <- function(df,
+                               player = NULL,
+                               type = NULL,
+                               pressure = NULL,
+                               leg = NULL,
+                               result = NULL,
+                               colour_by = NULL) {
 
   df <- tagr_filter_player(df, player)
 
@@ -190,168 +211,122 @@ tagr_half_pitch_background <- function() {
     ggplot2::theme_void()
 }
 
-#' Plot shot locations coloured by result
+# ------------------------------------------------------------------------------
+# Public function
+# ------------------------------------------------------------------------------
+
+#' Shooting heatmap
 #'
 #' Plots shot x/y coordinates on a fixed half korfball pitch background.
-#' Points are coloured by result (goal or miss).
+#' Points are coloured by one of: result, type, pressure, leg.
 #'
 #' @param df A TeamTV shots data.frame.
-#' @param player Optional. Player name (fuzzy match) or shirt number (exact match).
-#' @param type Optional. Filter on shot type.
-#' @param pressure Optional. Filter on pressure.
-#' @param leg Optional. Filter on leg.
+#' @param colour_by What to colour points by. One of "result", "type", "pressure", "leg".
+#' @param filter Optional named list of filters. Example: list(result = "goal", pressure = "HIGH").
+#'   Note: if you supply a filter for the same variable as `colour_by`, it is ignored.
+#' @param player Optional. One or more player identifiers (numbers and/or names).
+#'   Examples: "11", c("11","24"), "Jane Doe", c("Jane Doe","24").
 #' @return A ggplot object.
 #' @export
-tagr_plot_shots_result <- function(df, player = NULL, type = NULL, pressure = NULL, leg = NULL) {
+tagr_heatmap <- function(df,
+                         colour_by = c("result", "type", "pressure", "leg"),
+                         filter = list(),
+                         player = NULL) {
 
   if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2", call. = FALSE)
   if (!requireNamespace("dplyr", quietly = TRUE)) stop("Install dplyr", call. = FALSE)
 
   validate_teamtv_shots(df)
 
-  df <- tagr_apply_filters(df, player = player, type = type, pressure = pressure, leg = leg, colour_by = "result")
-  df <- tagr_transform_xy(df)
-  df <- dplyr::mutate(df, result = tolower(.data$result))
+  colour_by <- match.arg(colour_by)
+  colour_by <- tolower(colour_by)
 
-  tagr_half_pitch_background() +
+  # ---- filter validation (kept) ----
+  if (is.null(filter)) filter <- list()
+  if (!is.list(filter)) {
+    stop("`filter` must be a named list, e.g. filter = list(result = 'goal').", call. = FALSE)
+  }
+
+  allowed <- c("type", "pressure", "leg", "result")
+  bad <- setdiff(names(filter), allowed)
+  if (length(bad)) {
+    stop(
+      "Unknown filter name(s): ", paste(bad, collapse = ", "),
+      ". Allowed: ", paste(allowed, collapse = ", "), ".",
+      call. = FALSE
+    )
+  }
+
+  type     <- filter$type
+  pressure <- filter$pressure
+  leg      <- filter$leg
+  result   <- filter$result
+
+  df <- tagr_apply_filters(
+    df,
+    player = player,
+    type = type,
+    pressure = pressure,
+    leg = leg,
+    result = result,
+    colour_by = colour_by
+  )
+
+  df <- tagr_transform_xy(df)
+
+  if (colour_by == "result") {
+    df <- dplyr::mutate(df, result = tolower(.data$result))
+  }
+
+  # ---- "Colour by ..." line (goes under title) ----
+  subtitle <- paste0("Colour by ", colour_by)
+
+  # ---- included players line (goes under plot) ----
+  caption <- "Included player(s): All players"
+  if (!is.null(player)) {
+    nums <- unique(df$number)
+    nums <- nums[!is.na(nums)]
+
+    if (length(nums)) {
+      nums_int <- suppressWarnings(as.integer(nums))
+      if (all(!is.na(nums_int))) {
+        nums <- as.character(sort(nums_int))
+      } else {
+        nums <- sort(as.character(nums))
+      }
+      caption <- paste0("Included player(s): ", paste0("#", nums, collapse = ", "))
+    }
+  }
+
+  p <- tagr_half_pitch_background() +
     ggplot2::geom_point(
       data = df,
-      ggplot2::aes(x = .data$x, y = .data$y, color = .data$result),
+      ggplot2::aes(x = .data$x, y = .data$y, color = .data[[colour_by]]),
       alpha = 0.8,
       size = 2
     ) +
-    ggplot2::scale_color_manual(
+    ggplot2::labs(
+      title = "SHOOTING HEATMAP",
+      subtitle = subtitle,
+      caption = caption,
+      color = NULL
+    ) +
+    ggplot2::theme(
+      plot.title = ggplot2::element_text(face = "bold"),
+      legend.position = "top",
+      legend.justification = "left",
+      legend.box.just = "left",
+      plot.caption = ggplot2::element_text(hjust = 0),
+      plot.margin = ggplot2::margin(10, 10, 10, 10)
+    )
+
+  if (colour_by == "result") {
+    p <- p + ggplot2::scale_color_manual(
       values = c(goal = "green3", miss = "red3", onbekend = "grey60"),
       breaks = c("goal", "miss", "onbekend"),
       labels = c("Goal", "Miss", "Onbekend")
-    ) +
-    ggplot2::labs(
-      title = "Shot locations",
-      subtitle = "Colour shows result",
-      color = NULL
-    ) +
-    ggplot2::theme(
-      legend.position = "top",
-      plot.margin = ggplot2::margin(10, 10, 10, 10)
     )
-}
+  }
 
-#' Plot shot locations coloured by shot type
-#'
-#' Plots shot x/y coordinates on a fixed half korfball pitch background.
-#' Points are coloured by shot type.
-#'
-#' @param df A TeamTV shots data.frame.
-#' @param player Optional. Player name (fuzzy match) or shirt number (exact match).
-#' @param result Optional. Filter on result.
-#' @param pressure Optional. Filter on pressure.
-#' @param leg Optional. Filter on leg.
-#' @return A ggplot object.
-#' @export
-tagr_plot_shots_type <- function(df, player = NULL, result = NULL, pressure = NULL, leg = NULL) {
-
-  if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2", call. = FALSE)
-  if (!requireNamespace("dplyr", quietly = TRUE)) stop("Install dplyr", call. = FALSE)
-
-  validate_teamtv_shots(df)
-
-  df <- tagr_apply_filters(df, player = player, result = result, pressure = pressure, leg = leg, colour_by = "type")
-  df <- tagr_transform_xy(df)
-
-  tagr_half_pitch_background() +
-    ggplot2::geom_point(
-      data = df,
-      ggplot2::aes(x = .data$x, y = .data$y, color = .data$type),
-      alpha = 0.8,
-      size = 2
-    ) +
-    ggplot2::labs(
-      title = "Shot locations",
-      subtitle = "Colour shows shot type",
-      color = NULL
-    ) +
-    ggplot2::theme(
-      legend.position = "top",
-      plot.margin = ggplot2::margin(10, 10, 10, 10)
-    )
-}
-
-#' Plot shot locations coloured by pressure
-#'
-#' Plots shot x/y coordinates on a fixed half korfball pitch background.
-#' Points are coloured by pressure.
-#'
-#' @param df A TeamTV shots data.frame.
-#' @param player Optional. Player name (fuzzy match) or shirt number (exact match).
-#' @param result Optional. Filter on result.
-#' @param type Optional. Filter on shot type.
-#' @param leg Optional. Filter on leg.
-#' @return A ggplot object.
-#' @export
-tagr_plot_shots_pressure <- function(df, player = NULL, result = NULL, type = NULL, leg = NULL) {
-
-  if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2", call. = FALSE)
-  if (!requireNamespace("dplyr", quietly = TRUE)) stop("Install dplyr", call. = FALSE)
-
-  validate_teamtv_shots(df)
-
-  df <- tagr_apply_filters(df, player = player, result = result, type = type, leg = leg, colour_by = "pressure")
-  df <- tagr_transform_xy(df)
-
-  tagr_half_pitch_background() +
-    ggplot2::geom_point(
-      data = df,
-      ggplot2::aes(x = .data$x, y = .data$y, color = .data$pressure),
-      alpha = 0.8,
-      size = 2
-    ) +
-    ggplot2::labs(
-      title = "Shot locations",
-      subtitle = "Colour shows pressure",
-      color = NULL
-    ) +
-    ggplot2::theme(
-      legend.position = "top",
-      plot.margin = ggplot2::margin(10, 10, 10, 10)
-    )
-}
-
-#' Plot shot locations coloured by leg
-#'
-#' Plots shot x/y coordinates on a fixed half korfball pitch background.
-#' Points are coloured by leg.
-#'
-#' @param df A TeamTV shots data.frame.
-#' @param player Optional. Player name (fuzzy match) or shirt number (exact match).
-#' @param result Optional. Filter on result.
-#' @param type Optional. Filter on shot type.
-#' @param pressure Optional. Filter on pressure.
-#' @return A ggplot object.
-#' @export
-tagr_plot_shots_leg <- function(df, player = NULL, result = NULL, type = NULL, pressure = NULL) {
-
-  if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2", call. = FALSE)
-  if (!requireNamespace("dplyr", quietly = TRUE)) stop("Install dplyr", call. = FALSE)
-
-  validate_teamtv_shots(df)
-
-  df <- tagr_apply_filters(df, player = player, result = result, type = type, pressure = pressure, colour_by = "leg")
-  df <- tagr_transform_xy(df)
-
-  tagr_half_pitch_background() +
-    ggplot2::geom_point(
-      data = df,
-      ggplot2::aes(x = .data$x, y = .data$y, color = .data$leg),
-      alpha = 0.8,
-      size = 2
-    ) +
-    ggplot2::labs(
-      title = "Shot locations",
-      subtitle = "Colour shows leg",
-      color = NULL
-    ) +
-    ggplot2::theme(
-      legend.position = "top",
-      plot.margin = ggplot2::margin(10, 10, 10, 10)
-    )
+  p
 }

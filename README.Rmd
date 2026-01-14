@@ -18,13 +18,12 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-TagR helps you work with TeamTV “tagged shots” exports for korfball. It provides:
+TagR helps you work with “tagged shots” from the popular TeamTV analysis platform, mainly used in korfball. It includes: 
 
-- quick quality checks (missingness patterns)
-- shot location visualizations on a korfball half-field
-- team descriptives tables + plots for coaching dashboards
-- simple per-player analysis plots (binomial trends for distance, pressure, and shot count)
-- a leg preference slider for comparing players at a glance
+- Missing data visualizations
+- Shooting location plots
+- Team-level descriptive tables and plots
+- Player level analysis 
 
 ## Installation
 
@@ -37,7 +36,7 @@ pak::pak("EmmaDirk/TagR")
 
 ## Data format
 
-Most TagR functions expect a TeamTV shot export with the same structure as the example dataset shipped with the package:
+TagR functions expect a TeamTV shot export with the same structure as the example dataset shipped with the package:
 
 ```{r}
 library(TagR)
@@ -47,7 +46,7 @@ str(shots, 1)
 
 ## Missingness patterns
 
-A quick way to see what information you do, and do not have.
+A quick way to see what information you do, and do not have. 
 
 ```{r}
 p <- tagr_plot_missingness(shots)
@@ -59,7 +58,7 @@ p
 TagR includes visualisations of shot location, filtered in various ways. 
 ```{r}
 # Example: result-colored plot (GOAL vs MISS) 
-p <- TagR::tagr_plot_shots_result(TagR::shots)
+p <- tagr_plot_shots_result(shots)
 p
 ```
 
@@ -67,7 +66,7 @@ Like many other functions in this package, plotting functions accept an optional
 
 ```{r}
 # Example: plot shots for player number 11 only
-p <- TagR::tagr_plot_shots_pressure(TagR::shots, player = "11")
+p <- tagr_plot_shots_pressure(shots, player = "11")
 p
 ```
 
