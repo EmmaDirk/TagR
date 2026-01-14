@@ -136,7 +136,7 @@
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tagr_heatmap.html">tagr_heatmap</a></span><span class="op">(</span><span class="va">shots</span>, colour_by <span class="op">=</span> <span class="st">"result"</span>, player <span class="op">=</span> <span class="st">"11"</span><span class="op">)</span></span>
 <span><span class="va">p</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-5-1.png" width="100%"></p>
-<p>Included shots can also be filtered by type (e.g., exclude freeballs), result (i.e. goal or miss), pressure level and leg.</p>
+<p>Included shots can also be filtered by <code>type</code> (e.g., exclude freeballs), <code>result</code> (i.e. goal or miss), <code>pressure</code> level and <code>leg</code>.</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># example: plot right legged shots for player number 11 only</span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tagr_heatmap.html">tagr_heatmap</a></span><span class="op">(</span><span class="va">shots</span>, colour_by <span class="op">=</span> <span class="st">"result"</span>, player <span class="op">=</span> <span class="st">"11"</span>, filter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>leg <span class="op">=</span> <span class="st">"RIGHT"</span><span class="op">)</span><span class="op">)</span></span>
@@ -146,7 +146,7 @@
 <div class="section level2">
 <h2 id="team-dashboards">Team dashboards<a class="anchor" aria-label="anchor" href="#team-dashboards"></a>
 </h2>
-<p>TagR provides quick overviews of team shooting performance across various attributes, including pressure, distance, shot type, leg, and shot count band. Ideal for coaches to get a quick sense of team performance and identify areas for improvement, or identify threats when preparing for upcoming opponents.</p>
+<p>TagR provides quick overviews of team shooting performance across various attributes, including <code>pressure</code>, <code>distance</code>, shot <code>type</code>, <code>leg</code>, and <code>shot count band</code>. Ideal for coaches to get a quick sense of team performance and identify areas for improvement, or identify threats when preparing for upcoming opponents.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># example: team overview dashboard</span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tagr_team_dashboad.html">tagr_team_dashboad</a></span><span class="op">(</span><span class="va">shots</span><span class="op">)</span></span>
@@ -168,9 +168,12 @@
 </h2>
 <p>TagR provides simple visualizations to show how scoring probability changes with:</p>
 <ul>
-<li>distance (capped at 10 m)</li>
-<li>pressure (NONE &lt; MEDIUM &lt; HIGH)</li>
-<li>shot count band (1, 2, 3, 4+)</li>
+<li>
+<code>distance</code> (capped at 10 m)</li>
+<li>
+<code>pressure</code> (NONE &lt; MEDIUM &lt; HIGH)</li>
+<li>
+<code>shot count band</code> (1, 2, 3, 4+)</li>
 </ul>
 <p>This can provide coaches with a simple way to view if players are struggling under pressure, or from longer distances.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
