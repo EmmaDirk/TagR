@@ -38,3 +38,20 @@ tagr_heatmap(
 ## Value
 
 A ggplot object.
+
+## Details
+
+Missing data handling:
+
+- rows with missing x or y are removed before plotting
+
+- for type pressure leg result filters missing values in that column are
+  excluded
+
+- if player is a name and df full_name is entirely missing an error is
+  raised
+
+- if player is a number and no rows match that number an error is raised
+
+- after transforming coordinates out of bounds x y values are clamped to
+  the pitch border

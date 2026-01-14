@@ -1,8 +1,8 @@
 # Plot missingness patterns for TeamTV shot data
 
-Pattern-based missingness heatmap (like md.pattern/VIM-style): complete
-patterns on top, then patterns sorted by completeness. Adds percent
-observed above columns.
+Pattern based missingness heatmap like md.pattern or vim style complete
+patterns are placed at the top then patterns are sorted by completeness
+percent observed is printed above each variable column
 
 ## Usage
 
@@ -19,11 +19,11 @@ tagr_plot_missingness(df, person = NULL, max_patterns = 30)
 - person:
 
   Optional string. If provided, filters to the closest matching
-  `full_name` (fuzzy match). Use `NULL` for all players.
+  full_name using fuzzy match. Use NULL for all players.
 
 - max_patterns:
 
-  Maximum number of patterns to display (most frequent kept).
+  Maximum number of patterns to display most frequent kept.
 
 ## Value
 
@@ -33,7 +33,18 @@ A ggplot object.
 
 Rules:
 
-- Strings like "onbekend" are treated as missing (converted to NA).
+- strings like onbekend are treated as missing and converted to na
 
-- `leg` is only relevant for type in c("SHORT","LONG","FREEBALL"). For
-  other shot types, leg is treated as N/A (not missing).
+- leg is only relevant for type in c(short long freeball) for other shot
+  types leg is treated as not applicable and not counted as missing
+
+Missing data handling:
+
+- unknown tokens like onbekend unknown unk n a na and empty string are
+  converted to na for character columns
+
+- rows are not removed for missingness plotting patterns are computed
+  from all rows after cleaning
+
+- leg missingness is rule based and only counted when leg is required
+  for the shot type

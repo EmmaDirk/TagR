@@ -75,6 +75,14 @@ Examples: "11", c("11","24"), "Jane Doe", c("Jane Doe","24").</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     <p>A ggplot object.</p>
     </div>
+    <div class="section level2">
+    <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
+    <p>Missing data handling:</p><ul><li><p>rows with missing x or y are removed before plotting</p></li>
+<li><p>for type pressure leg result filters missing values in that column are excluded</p></li>
+<li><p>if player is a name and df full_name is entirely missing an error is raised</p></li>
+<li><p>if player is a number and no rows match that number an error is raised</p></li>
+<li><p>after transforming coordinates out of bounds x y values are clamped to the pitch border</p></li>
+</ul></div>
 
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
