@@ -111,8 +111,8 @@ p
 
 <img src="man/figures/README-unnamed-chunk-5-1.png" width="100%" />
 
-Included shots can also be filtered by type (e.g., exclude freeballs),
-result (i.e. goal or miss), pressure level and leg.
+Included shots can also be filtered by `type` (e.g., exclude freeballs),
+`result` (i.e. goal or miss), `pressure` level and `leg`.
 
 ``` r
 # example: plot right legged shots for player number 11 only
@@ -125,10 +125,10 @@ p
 ## Team dashboards
 
 TagR provides quick overviews of team shooting performance across
-various attributes, including pressure, distance, shot type, leg, and
-shot count band. Ideal for coaches to get a quick sense of team
-performance and identify areas for improvement, or identify threats when
-preparing for upcoming opponents.
+various attributes, including `pressure`, `distance`, shot `type`,
+`leg`, and `shot count band`. Ideal for coaches to get a quick sense of
+team performance and identify areas for improvement, or identify threats
+when preparing for upcoming opponents.
 
 ``` r
 # example: team overview dashboard
@@ -156,9 +156,9 @@ p
 TagR provides simple visualizations to show how scoring probability
 changes with:
 
-- distance (capped at 10 m)
-- pressure (NONE \< MEDIUM \< HIGH)
-- shot count band (1, 2, 3, 4+)
+- `distance` (capped at 10 m)
+- `pressure` (NONE \< MEDIUM \< HIGH)
+- `shot count band` (1, 2, 3, 4+)
 
 This can provide coaches with a simple way to view if players are
 struggling under pressure, or from longer distances.
