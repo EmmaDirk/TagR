@@ -1,79 +1,47 @@
 # tests/testthat/test-validate_teamtv_shots.R
-# unit tests for validate_teamtv_shots()
+# this test file checks validate_teamtv_shots()
 
 testthat::test_that("validate_teamtv_shots errors on non-TeamTV data", {
-  # cars is a built in dataset and will not have the expected teamtv schema
-  # the validator should fail at the column name check with a column name mismatch message
+  # cars is a built in dataset and will not have the expected teamtv core columns
   testthat::expect_error(
     validate_teamtv_shots(cars),
-    "Column-name mismatch"
+    "Missing required columns"
   )
 })
 
 testthat::test_that("validate_teamtv_shots accepts the packaged shots dataset", {
-  # this is the happy path for the packaged example dataset
-  # it should not error and should be silent meaning validation passed
-  # if this fails it usually means the expected schema in the validator is out of sync
+  # happy path for the packaged example dataset
   testthat::expect_silent(validate_teamtv_shots(shots))
 })
 
-testthat::test_that("validate_teamtv_shots accepts reordered columns", {
-  # teamtv sometimes changes export order without changing column names
-  # validator should accept this by reordering internally
-
+testthat::test_that("validate_teamtv_shots warns when optional columns are missing", {
+  # simulate a teamtv export that omits opponent columns
   df <- shots
-
-  # mimic the newer teamtv order where opponent columns appear earlier
-  new_order <- c(
-    "X",
-    "sporting_event_id",
-    "sporting_event_name",
-    "sporting_event_scheduled_at",
-    "observation_id",
-    "clock_id",
-    "start_time",
-    "end_time",
-    "code",
-    "description",
-    "possession_id",
-    "team_id",
-    "team_name",
-    "team_ground",
-    "position",
-    "team_name_full",
-    "team_key",
-    "person_id",
-    "first_name",
-    "last_name",
-    "number",
-    "full_name",
-    "opponent_person_id",
-    "opponent_first_name",
-    "opponent_last_name",
-    "opponent_number",
-    "opponent_full_name",
-    "leg",
-    "type",
-    "angle",
-    "result",
-    "distance",
-    "pressure",
-    "x",
-    "y",
-    "participantsPersonIds",
-    "shot_count"
+  drop_cols <- c(
+    "opponent_person_id", "opponent_first_name", "opponent_last_name",
+    "opponent_number", "opponent_full_name"
   )
+  df <- df[, setdiff(names(df), drop_cols), drop = FALSE]
 
-  df <- df[, new_order, drop = FALSE]
-
-  testthat::expect_silent(validate_teamtv_shots(df))
+  testthat::expect_warning(
+    validate_teamtv_shots(df),
+    "Missing important columns"
+  )
 })
 
-testthat::test_that("validate_teamtv_shots errors on invalid coded values", {
-  # this test checks the allowed value validation for coded columns
-  # pressure has a strict allowed set and this test injects an invalid code
-  # the validator should catch it and error with an unknown pressure value message
+testthat::test_that("validate_teamtv_shots errors when a required core column is missing", {
+  # x and y are required core columns for core TagR plotting
+  df <- shots
+  df <- df[, setdiff(names(df), c("x")), drop = FALSE]
 
+  testthat::expect_error(
+    validate_teamtv_shots(df),
+    "Missing required columns"
+  )
+})
+
+testthat::test_that("validate_teamtv_shots errors on invalid coded values when the column exists", {
+  # pressure exists in shots so an invalid value should be rejected
   bad <- shots
   bad$pressure[1] <- "SUPERHIGH"
 
@@ -84,10 +52,7 @@ testthat::test_that("validate_teamtv_shots errors on invalid coded values", {
 })
 
 testthat::test_that("validate_teamtv_shots errors on wrong types", {
-  # this test checks the type validation logic
   # distance is expected to be numeric and this test forces it to character
-  # the validator should error and include a type mismatch message
-
   bad <- shots
   bad$distance <- as.character(bad$distance)
 
