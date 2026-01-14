@@ -50,13 +50,11 @@
 </h1></div>
 <!-- badges: start -->
 <!-- badges: end -->
-<p>TagR helps you work with TeamTV “tagged shots” exports for korfball. It provides:</p>
+<p>TagR helps you work with “tagged shots” from the popular TeamTV analysis platform, mainly used in korfball. It includes:</p>
 <ul>
-<li>quick quality checks (missingness patterns)</li>
-<li>shot location visualizations on a korfball half-field</li>
-<li>team descriptives tables + plots for coaching dashboards</li>
-<li>simple per-player analysis plots (binomial trends for distance, pressure, and shot count)</li>
-<li>a leg preference slider for comparing players at a glance</li>
+<li>Functions to tell you what information you miss.</li>
+<li>Various visualisations of tagged shots.</li>
+<li>Dashboards to compare and analyse teams and individual players at a glance.</li>
 </ul>
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
@@ -69,7 +67,7 @@
 <div class="section level2">
 <h2 id="data-format">Data format<a class="anchor" aria-label="anchor" href="#data-format"></a>
 </h2>
-<p>Most TagR functions expect a TeamTV shot export with the same structure as the example dataset shipped with the package:</p>
+<p>TagR functions expect a TeamTV shot export with the same structure as the example dataset shipped with the package:</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://emmadirk.github.io/TagR/">TagR</a></span><span class="op">)</span></span>
 <span></span>
@@ -116,68 +114,57 @@
 <div class="section level2">
 <h2 id="missingness-patterns">Missingness patterns<a class="anchor" aria-label="anchor" href="#missingness-patterns"></a>
 </h2>
-<p>A quick way to see what information you do, and do not have.</p>
+<p>A quick way to see what information you have, and what information you have not yet recorded.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tagr_plot_missingness.html">tagr_plot_missingness</a></span><span class="op">(</span><span class="va">shots</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># example: plot missingness pattern for all shots</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tagr_plot_missingness.html">tagr_plot_missingness</a></span><span class="op">(</span><span class="va">shots</span><span class="op">)</span></span>
 <span><span class="va">p</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-3-1.png" width="100%"></p>
 </div>
 <div class="section level2">
-<h2 id="shot-location-plots">Shot location plots<a class="anchor" aria-label="anchor" href="#shot-location-plots"></a>
+<h2 id="shot-visualisations-by-location">Shot visualisations by location<a class="anchor" aria-label="anchor" href="#shot-visualisations-by-location"></a>
 </h2>
-<p>TagR includes visualisations of shot location, filtered in various ways.</p>
+<p>TagR includes visualisations of shot location, where various attributes of the shots can be mapped to colour.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Example: result-colored plot (GOAL vs MISS) </span></span>
-<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">TagR</span><span class="fu">::</span><span class="fu">tagr_plot_shots_result</span><span class="op">(</span><span class="fu">TagR</span><span class="fu">::</span><span class="va"><a href="reference/shots.html">shots</a></span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># example: result-colored plot (GOAL vs MISS) </span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tagr_heatmap.html">tagr_heatmap</a></span><span class="op">(</span><span class="va">shots</span>, colour_by <span class="op">=</span> <span class="st">"result"</span><span class="op">)</span></span>
 <span><span class="va">p</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-4-1.png" width="100%"></p>
 <p>Like many other functions in this package, plotting functions accept an optional <code>player</code> argument (fuzzy match on name or exact match on number).</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Example: plot shots for player number 11 only</span></span>
-<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu">TagR</span><span class="fu">::</span><span class="fu">tagr_plot_shots_pressure</span><span class="op">(</span><span class="fu">TagR</span><span class="fu">::</span><span class="va"><a href="reference/shots.html">shots</a></span>, player <span class="op">=</span> <span class="st">"11"</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="co"># example: plot shots for player number 11 only</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tagr_heatmap.html">tagr_heatmap</a></span><span class="op">(</span><span class="va">shots</span>, colour_by <span class="op">=</span> <span class="st">"result"</span>, player <span class="op">=</span> <span class="st">"11"</span><span class="op">)</span></span>
 <span><span class="va">p</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-5-1.png" width="100%"></p>
+<p>Included shots can also be filtered by type (e.g., exclude freeballs), result (i.e. goal or miss), pressure level and leg.</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># example: plot right legged shots for player number 11 only</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tagr_heatmap.html">tagr_heatmap</a></span><span class="op">(</span><span class="va">shots</span>, colour_by <span class="op">=</span> <span class="st">"result"</span>, player <span class="op">=</span> <span class="st">"11"</span>, filter <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>leg <span class="op">=</span> <span class="st">"RIGHT"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">p</span></span></code></pre></div>
+<p><img src="reference/figures/README-unnamed-chunk-6-1.png" width="100%"></p>
 </div>
 <div class="section level2">
-<h2 id="team-descriptives-tables--plots">Team descriptives (tables + plots)<a class="anchor" aria-label="anchor" href="#team-descriptives-tables--plots"></a>
+<h2 id="team-dashboards">Team dashboards<a class="anchor" aria-label="anchor" href="#team-dashboards"></a>
 </h2>
-<p>Compute goal percentages by key categories (pressure, distance band, shot type, shot count band, leg). Returns plain data.frames so they are easy to inspect and test.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">tabs</span> <span class="op">&lt;-</span> <span class="fu">tagr_team_overview_tables</span><span class="op">(</span><span class="va">shots</span><span class="op">)</span></span>
-<span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/names.html" class="external-link">names</a></span><span class="op">(</span><span class="va">tabs</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "pressure"   "distance"   "type"       "shot_count" "leg"</span></span>
-<span><span class="va">tabs</span><span class="op">$</span><span class="va">pressure</span></span>
-<span><span class="co">#&gt; # A tibble: 4 × 4</span></span>
-<span><span class="co">#&gt;   level    shots goals pct_goal</span></span>
-<span><span class="co">#&gt;   &lt;chr&gt;    &lt;int&gt; &lt;int&gt;    &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; 1 ONBEKEND   989   148    15.0 </span></span>
-<span><span class="co">#&gt; 2 MEDIUM     156    25    16.0 </span></span>
-<span><span class="co">#&gt; 3 NONE        38     5    13.2 </span></span>
-<span><span class="co">#&gt; 4 HIGH        13     1     7.69</span></span>
-<span><span class="va">tabs</span><span class="op">$</span><span class="va">type</span></span>
-<span><span class="co">#&gt; # A tibble: 5 × 4</span></span>
-<span><span class="co">#&gt;   level      shots goals pct_goal</span></span>
-<span><span class="co">#&gt;   &lt;chr&gt;      &lt;int&gt; &lt;int&gt;    &lt;dbl&gt;</span></span>
-<span><span class="co">#&gt; 1 LONG         632    56     8.86</span></span>
-<span><span class="co">#&gt; 2 SHORT        378    59    15.6 </span></span>
-<span><span class="co">#&gt; 3 RUNNING-IN   112    22    19.6 </span></span>
-<span><span class="co">#&gt; 4 FREE-BALL     39    14    35.9 </span></span>
-<span><span class="co">#&gt; 5 PENALTY       35    28    80</span></span></code></pre></div>
-<p>Plot one attribute as a quick bar chart:</p>
+<p>TagR provides quick overviews of team shooting performance across various attributes, including pressure, distance, shot type, leg, and shot count band. Ideal for coaches to get a quick sense of team performance and identify areas for improvement, or identify threats when preparing for upcoming opponents.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">tagr_team_overview_plot</span><span class="op">(</span><span class="va">shots</span>, attribute <span class="op">=</span> <span class="st">"pressure"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># example: team overview dashboard</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tagr_team_dashboad.html">tagr_team_dashboad</a></span><span class="op">(</span><span class="va">shots</span><span class="op">)</span></span>
+<span><span class="va">p</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-7-1.png" width="100%"></p>
+</div>
+<div class="section level2">
+<h2 id="player-dashboards">Player dashboards<a class="anchor" aria-label="anchor" href="#player-dashboards"></a>
+</h2>
+<p>Or zoom in on individual players to see their shooting performance across various attributes, compared to the team average.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">tagr_team_overview_plot</span><span class="op">(</span><span class="va">shots</span>, attribute <span class="op">=</span> <span class="st">"distance"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-7-2.png" width="100%"></p>
-<p>Filter to a single player (fuzzy match on name or exact match on number):</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">tagr_team_overview_plot</span><span class="op">(</span><span class="va">shots</span>, attribute <span class="op">=</span> <span class="st">"type"</span>, player <span class="op">=</span> <span class="st">"11"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># example: player overview dashboard for player number 10</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tagr_player_dashboard.html">tagr_player_dashboard</a></span><span class="op">(</span><span class="va">shots</span>, player <span class="op">=</span> <span class="st">"17"</span><span class="op">)</span></span>
+<span><span class="va">p</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-8-1.png" width="100%"></p>
 </div>
 <div class="section level2">
-<h2 id="player-analysis-binomial-trend-plots">Player analysis (binomial trend plots)<a class="anchor" aria-label="anchor" href="#player-analysis-binomial-trend-plots"></a>
+<h2 id="player-analysis">Player analysis<a class="anchor" aria-label="anchor" href="#player-analysis"></a>
 </h2>
 <p>TagR provides simple visualizations to show how scoring probability changes with:</p>
 <ul>
@@ -185,30 +172,17 @@
 <li>pressure (NONE &lt; MEDIUM &lt; HIGH)</li>
 <li>shot count band (1, 2, 3, 4+)</li>
 </ul>
-<p>Player plots optionally include the team line/points for comparison, and you can restrict to LONG/SHORT shots only, including only shots from open play.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">tagr_plot_prob_by_distance</span><span class="op">(</span><span class="va">shots</span><span class="op">)</span></span></code></pre></div>
+<p>This can provide coaches with a simple way to view if players are struggling under pressure, or from longer distances.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># example: plot scoring probability by pressure for player number 10</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tagr_shot_analysis.html">tagr_shot_analysis</a></span><span class="op">(</span><span class="va">shots</span>, player <span class="op">=</span> <span class="st">"10"</span>, feature <span class="op">=</span> <span class="st">"pressure"</span>, add_team <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">p</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-9-1.png" width="100%"></p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">tagr_plot_prob_by_distance</span><span class="op">(</span><span class="va">shots</span>, player <span class="op">=</span> <span class="st">"11"</span>, long_short_only <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-9-2.png" width="100%"></p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
-<span><span class="fu">tagr_plot_prob_by_pressure</span><span class="op">(</span><span class="va">shots</span>, player <span class="op">=</span> <span class="st">"Joost Dek"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-9-3.png" width="100%"></p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">tagr_plot_prob_by_shot_count</span><span class="op">(</span><span class="va">shots</span>, player <span class="op">=</span> <span class="st">"11"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="reference/figures/README-unnamed-chunk-9-4.png" width="100%"></p>
-</div>
-<div class="section level2">
-<h2 id="leg-preference-slider">Leg preference slider<a class="anchor" aria-label="anchor" href="#leg-preference-slider"></a>
-</h2>
-<p>A compact visualization that places all players on a left-to-right “leg preference” slider. It uses only SHORT, LONG, and FREE-BALL shots and combines volume and success per leg. The y-axis shows number of shots, and each dot is labeled with the player name/number.</p>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">tagr_plot_leg_preference_slider</span><span class="op">(</span><span class="va">shots</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning in ggplot2::geom_segment(ggplot2::aes(x = -1, xend = 1, y = 0, yend = 0), : All aesthetics have length 1, but the data has 11 rows.</span></span>
-<span><span class="co">#&gt; ℹ Please consider using `annotate()` or provide this layer with data containing</span></span>
-<span><span class="co">#&gt;   a single row.</span></span></code></pre></div>
+<p>where <code>feature</code> can also be <code>"distance"</code> or <code>"shot_count_band"</code>. Multiple players can be added.</p>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># example: plot scoring probability by distance for player number 10</span></span>
+<span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tagr_shot_analysis.html">tagr_shot_analysis</a></span><span class="op">(</span><span class="va">shots</span>, player <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10"</span>, <span class="st">"17"</span><span class="op">)</span>, feature <span class="op">=</span> <span class="st">"distance"</span>, add_team <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
+<span><span class="va">p</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-10-1.png" width="100%"></p>
 </div>
 </div>

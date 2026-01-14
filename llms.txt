@@ -1,14 +1,12 @@
 # TagR
 
-TagR helps you work with TeamTV “tagged shots” exports for korfball. It
-provides:
+TagR helps you work with “tagged shots” from the popular TeamTV analysis
+platform, mainly used in korfball. It includes:
 
-- quick quality checks (missingness patterns)
-- shot location visualizations on a korfball half-field
-- team descriptives tables + plots for coaching dashboards
-- simple per-player analysis plots (binomial trends for distance,
-  pressure, and shot count)
-- a leg preference slider for comparing players at a glance
+- Functions to tell you what information you miss.
+- Various visualisations of tagged shots.
+- Dashboards to compare and analyse teams and individual players at a
+  glance.
 
 ## Installation
 
@@ -21,8 +19,8 @@ pak::pak("EmmaDirk/TagR")
 
 ## Data format
 
-Most TagR functions expect a TeamTV shot export with the same structure
-as the example dataset shipped with the package:
+TagR functions expect a TeamTV shot export with the same structure as
+the example dataset shipped with the package:
 
 ``` r
 library(TagR)
@@ -70,22 +68,25 @@ str(shots, 1)
 
 ## Missingness patterns
 
-A quick way to see what information you do, and do not have.
+A quick way to see what information you have, and what information you
+have not yet recorded.
 
 ``` r
+# example: plot missingness pattern for all shots
 p <- tagr_plot_missingness(shots)
 p
 ```
 
 ![](reference/figures/README-unnamed-chunk-3-1.png)
 
-## Shot location plots
+## Shot visualisations by location
 
-TagR includes visualisations of shot location, filtered in various ways.
+TagR includes visualisations of shot location, where various attributes
+of the shots can be mapped to colour.
 
 ``` r
-# Example: result-colored plot (GOAL vs MISS) 
-p <- TagR::tagr_plot_shots_result(TagR::shots)
+# example: result-colored plot (GOAL vs MISS) 
+p <- tagr_heatmap(shots, colour_by = "result")
 p
 ```
 
@@ -96,67 +97,54 @@ optional `player` argument (fuzzy match on name or exact match on
 number).
 
 ``` r
-# Example: plot shots for player number 11 only
-p <- TagR::tagr_plot_shots_pressure(TagR::shots, player = "11")
+# example: plot shots for player number 11 only
+p <- tagr_heatmap(shots, colour_by = "result", player = "11")
 p
 ```
 
 ![](reference/figures/README-unnamed-chunk-5-1.png)
 
-## Team descriptives (tables + plots)
-
-Compute goal percentages by key categories (pressure, distance band,
-shot type, shot count band, leg). Returns plain data.frames so they are
-easy to inspect and test.
+Included shots can also be filtered by type (e.g., exclude freeballs),
+result (i.e. goal or miss), pressure level and leg.
 
 ``` r
-tabs <- tagr_team_overview_tables(shots)
-
-names(tabs)
-#> [1] "pressure"   "distance"   "type"       "shot_count" "leg"
-tabs$pressure
-#> # A tibble: 4 × 4
-#>   level    shots goals pct_goal
-#>   <chr>    <int> <int>    <dbl>
-#> 1 ONBEKEND   989   148    15.0 
-#> 2 MEDIUM     156    25    16.0 
-#> 3 NONE        38     5    13.2 
-#> 4 HIGH        13     1     7.69
-tabs$type
-#> # A tibble: 5 × 4
-#>   level      shots goals pct_goal
-#>   <chr>      <int> <int>    <dbl>
-#> 1 LONG         632    56     8.86
-#> 2 SHORT        378    59    15.6 
-#> 3 RUNNING-IN   112    22    19.6 
-#> 4 FREE-BALL     39    14    35.9 
-#> 5 PENALTY       35    28    80
+# example: plot right legged shots for player number 11 only
+p <- tagr_heatmap(shots, colour_by = "result", player = "11", filter = list(leg = "RIGHT"))
+p
 ```
 
-Plot one attribute as a quick bar chart:
+![](reference/figures/README-unnamed-chunk-6-1.png)
+
+## Team dashboards
+
+TagR provides quick overviews of team shooting performance across
+various attributes, including pressure, distance, shot type, leg, and
+shot count band. Ideal for coaches to get a quick sense of team
+performance and identify areas for improvement, or identify threats when
+preparing for upcoming opponents.
 
 ``` r
-tagr_team_overview_plot(shots, attribute = "pressure")
+# example: team overview dashboard
+p <- tagr_team_dashboad(shots)
+p
 ```
 
 ![](reference/figures/README-unnamed-chunk-7-1.png)
 
-``` r
-tagr_team_overview_plot(shots, attribute = "distance")
-```
+## Player dashboards
 
-![](reference/figures/README-unnamed-chunk-7-2.png)
-
-Filter to a single player (fuzzy match on name or exact match on
-number):
+Or zoom in on individual players to see their shooting performance
+across various attributes, compared to the team average.
 
 ``` r
-tagr_team_overview_plot(shots, attribute = "type", player = "11")
+# example: player overview dashboard for player number 10
+p <- tagr_player_dashboard(shots, player = "17")
+p
 ```
 
 ![](reference/figures/README-unnamed-chunk-8-1.png)
 
-## Player analysis (binomial trend plots)
+## Player analysis
 
 TagR provides simple visualizations to show how scoring probability
 changes with:
@@ -165,47 +153,24 @@ changes with:
 - pressure (NONE \< MEDIUM \< HIGH)
 - shot count band (1, 2, 3, 4+)
 
-Player plots optionally include the team line/points for comparison, and
-you can restrict to LONG/SHORT shots only, including only shots from
-open play.
+This can provide coaches with a simple way to view if players are
+struggling under pressure, or from longer distances.
 
 ``` r
-tagr_plot_prob_by_distance(shots)
+# example: plot scoring probability by pressure for player number 10
+p <- tagr_shot_analysis(shots, player = "10", feature = "pressure", add_team = TRUE)
+p
 ```
 
 ![](reference/figures/README-unnamed-chunk-9-1.png)
 
-``` r
-tagr_plot_prob_by_distance(shots, player = "11", long_short_only = TRUE)
-```
-
-![](reference/figures/README-unnamed-chunk-9-2.png)
+where `feature` can also be `"distance"` or `"shot_count_band"`.
+Multiple players can be added.
 
 ``` r
-
-tagr_plot_prob_by_pressure(shots, player = "Joost Dek")
-```
-
-![](reference/figures/README-unnamed-chunk-9-3.png)
-
-``` r
-tagr_plot_prob_by_shot_count(shots, player = "11")
-```
-
-![](reference/figures/README-unnamed-chunk-9-4.png)
-
-## Leg preference slider
-
-A compact visualization that places all players on a left-to-right “leg
-preference” slider. It uses only SHORT, LONG, and FREE-BALL shots and
-combines volume and success per leg. The y-axis shows number of shots,
-and each dot is labeled with the player name/number.
-
-``` r
-tagr_plot_leg_preference_slider(shots)
-#> Warning in ggplot2::geom_segment(ggplot2::aes(x = -1, xend = 1, y = 0, yend = 0), : All aesthetics have length 1, but the data has 11 rows.
-#> ℹ Please consider using `annotate()` or provide this layer with data containing
-#>   a single row.
+# example: plot scoring probability by distance for player number 10
+p <- tagr_shot_analysis(shots, player = c("10", "17"), feature = "distance", add_team = TRUE)
+p
 ```
 
 ![](reference/figures/README-unnamed-chunk-10-1.png)
