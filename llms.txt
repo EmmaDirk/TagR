@@ -165,7 +165,8 @@ p
 ![](reference/figures/README-unnamed-chunk-9-1.png)
 
 where `feature` can also be `"distance"` or `"shot_count_band"`.
-Multiple players can be added.
+Multiple players can be added by passing a vector to the `player`
+argument:
 
 ``` r
 # example: plot scoring probability by distance for player number 10

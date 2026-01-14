@@ -181,7 +181,7 @@
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tagr_shot_analysis.html">tagr_shot_analysis</a></span><span class="op">(</span><span class="va">shots</span>, player <span class="op">=</span> <span class="st">"10"</span>, feature <span class="op">=</span> <span class="st">"pressure"</span>, add_team <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">p</span></span></code></pre></div>
 <p><img src="reference/figures/README-unnamed-chunk-9-1.png" width="100%"></p>
-<p>where <code>feature</code> can also be <code>"distance"</code> or <code>"shot_count_band"</code>. Multiple players can be added.</p>
+<p>where <code>feature</code> can also be <code>"distance"</code> or <code>"shot_count_band"</code>. Multiple players can be added by passing a vector to the <code>player</code> argument:</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># example: plot scoring probability by distance for player number 10</span></span>
 <span><span class="va">p</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/tagr_shot_analysis.html">tagr_shot_analysis</a></span><span class="op">(</span><span class="va">shots</span>, player <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"10"</span>, <span class="st">"17"</span><span class="op">)</span>, feature <span class="op">=</span> <span class="st">"distance"</span>, add_team <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
