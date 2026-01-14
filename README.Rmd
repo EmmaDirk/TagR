@@ -10,9 +10,9 @@ knitr::opts_chunk$set(
   comment = "#>",
   fig.path = "man/figures/README-",
   out.width = "100%",
-  fig.width = 14,
-  fig.height = 10,
-  dpi = 300,
+  fig.width = 12,
+  fig.height = 7,
+  dpi = 200,
   fig.retina = 2
 )
 ```
@@ -118,7 +118,7 @@ p <- tagr_shot_analysis(shots, player = "10", feature = "pressure", add_team = T
 p
 ```
 
-where `feature` can also be `"distance"` or `"shot_count_band"`. Multiple players can be added.
+where `feature` can also be `"distance"` or `"shot_count_band"`. Multiple players can be added by passing a vector to the `player` argument:
 
 ```{r}
 # example: plot scoring probability by distance for player number 10
