@@ -105,14 +105,12 @@ validate_teamtv_shots <- function(x) {
     stop(msg, call. = FALSE)
   }
 
-  # enforce column order as well to catch subtle export format changes
+  # allow reordered exports
+  # teamtv sometimes changes export column order without changing names or meanings
+  # we keep strict name matching above but reorder here so downstream checks are stable
   if (!identical(got_names, exp_names)) {
-    stop(
-      "Column-name mismatch.\n",
-      "Column order differs from the expected TeamTV schema.\n",
-      "This often indicates an export-format change. Reorder columns or update TagR.",
-      call. = FALSE
-    )
+    x <- x[, exp_names, drop = FALSE]
+    got_names <- names(x)
   }
 
   # check each column type against the expected type
