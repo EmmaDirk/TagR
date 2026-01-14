@@ -1,16 +1,24 @@
 #' Validate a TeamTV tagged-shots data.frame
 #'
 #' Checks:
-#' - column names: exact match (no missing/extra)
-#' - column types: match expected types (with "integer-ish" tolerance)
-#' - allowed values for: pressure, type, leg, result (case-insensitive; NA allowed)
+#' - column names: exact match no missing or extra columns
+#' - column order: must match the expected schema order
+#' - column types: match expected types with integerish tolerance for integer columns
+#' - allowed values for pressure type leg result case insensitive na allowed
+#'
+#' Missing data handling:
+#' - na values are allowed for pressure type leg result and are skipped in allowed value checks
+#' - for integerish checks na values are ignored and only non missing values are validated
+#' - if an entire column is the wrong type validation errors even if many values are na
 #'
 #' @param x A data.frame with TeamTV tagged shots
-#' @return Invisibly returns TRUE if valid; otherwise errors.
+#' @return Invisibly returns TRUE if valid otherwise errors
 #' @export
-
 validate_teamtv_shots <- function(x) {
-  # ---- expected schema ----
+
+  # expected schema as a named list
+  # names are required column names in required order
+  # values are the expected base type for each column
   expected <- list(
     X                           = "integer",
     sporting_event_id           = "character",
@@ -51,34 +59,42 @@ validate_teamtv_shots <- function(x) {
     shot_count                  = "integer"
   )
 
-  # ---- helpers ----
+  # helper that accepts true integers or numeric values that are effectively integers
+  # na values are ignored in this check
   is_integerish <- function(v) {
     if (is.integer(v)) return(TRUE)
     if (!is.numeric(v)) return(FALSE)
+
     v2 <- v[!is.na(v)]
     all(abs(v2 - round(v2)) < .Machine$double.eps^0.5)
   }
 
+  # normalize tokens so coding checks are stable across case and separators
+  # running in running_in running-in all become running-in in uppercase
   norm_token <- function(v) {
-    # case-insensitive + normalize separators to hyphen
-    # "running in" / "RUNNING_IN" / "RUNNING-IN" -> "RUNNING-IN"
     v <- trimws(v)
     v <- toupper(v)
     v <- gsub("[ _]+", "-", v)
     v
   }
 
+  # small helper for formatted errors without call trace noise
   stopf <- function(...) stop(sprintf(...), call. = FALSE)
 
-  # ---- basic checks ----
-  if (!is.data.frame(x)) stopf("Expected a data.frame, got: %s", paste(class(x), collapse = "/"))
+  # basic input check to ensure we are working with a data.frame
+  if (!is.data.frame(x)) {
+    stopf("Expected a data.frame, got: %s", paste(class(x), collapse = "/"))
+  }
 
+  # expected and observed column names
   exp_names <- names(expected)
   got_names <- names(x)
 
+  # find missing and extra columns
   missing <- setdiff(exp_names, got_names)
   extra   <- setdiff(got_names, exp_names)
 
+  # if schema does not match exactly stop and show what changed
   if (length(missing) > 0 || length(extra) > 0) {
     msg <- "Column-name mismatch.\n"
     if (length(missing) > 0) msg <- paste0(msg, "- Missing: ", paste(missing, collapse = ", "), "\n")
@@ -87,7 +103,7 @@ validate_teamtv_shots <- function(x) {
     stop(msg, call. = FALSE)
   }
 
-  # Enforce order too (optional but useful to catch subtle changes)
+  # enforce column order as well to catch subtle export format changes
   if (!identical(got_names, exp_names)) {
     stop(
       "Column order differs from the expected TeamTV schema.\n",
@@ -96,12 +112,14 @@ validate_teamtv_shots <- function(x) {
     )
   }
 
-  # ---- type checks ----
+  # check each column type against the expected type
+  # collect all mismatches and report them together
   type_errors <- character(0)
   for (nm in exp_names) {
     want <- expected[[nm]]
     v <- x[[nm]]
 
+    # decide if the vector passes the type rule
     ok <- switch(
       want,
       integer   = is_integerish(v),
@@ -111,12 +129,14 @@ validate_teamtv_shots <- function(x) {
       FALSE
     )
 
+    # record a readable message for any mismatch
     if (!ok) {
       got <- paste(class(v), collapse = "/")
       type_errors <- c(type_errors, sprintf("- %s: expected %s, got %s", nm, want, got))
     }
   }
 
+  # stop if any types are wrong
   if (length(type_errors) > 0) {
     stop(
       "Type mismatch in TeamTV shots data:\n",
@@ -126,20 +146,29 @@ validate_teamtv_shots <- function(x) {
     )
   }
 
-  # ---- value checks (case-insensitive; NA allowed) ----
+  # allowed categorical codes in normalized uppercase hyphen form
   allowed_pressure <- c("LOW", "MEDIUM", "HIGH", "NONE", "ONBEKEND")
   allowed_type     <- c("LONG", "RUNNING-IN", "SHORT", "FREE-BALL", "PENALTY", "ONBEKEND")
   allowed_leg      <- c("LEFT", "BOTH", "RIGHT", "ONBEKEND")
   allowed_result   <- c("MISS", "GOAL", "ONBEKEND")
 
+  # check that a given categorical column contains only allowed codes
+  # na values are allowed and ignored by this check
   check_allowed <- function(col, allowed, label) {
     v <- x[[col]]
     v0 <- v
+
+    # drop na before checking allowed values
     v <- v[!is.na(v)]
+
+    # type guard to avoid calling string functions on non character data
     if (!is.character(v)) stopf("Column '%s' must be character to validate values.", col)
 
+    # normalize values then detect which original values are not allowed
     vn <- norm_token(v)
     bad <- sort(unique(v0[!is.na(v0)][!vn %in% allowed]))
+
+    # stop with details if any unknown codes appear
     if (length(bad) > 0) {
       stop(
         sprintf(
@@ -151,11 +180,12 @@ validate_teamtv_shots <- function(x) {
     }
   }
 
+  # run allowed value checks for each coded column
   check_allowed("pressure", allowed_pressure, "pressure")
   check_allowed("type",     allowed_type,     "shot type")
   check_allowed("leg",      allowed_leg,      "leg")
   check_allowed("result",   allowed_result,   "result")
 
+  # return true invisibly so it can be used in pipelines without printing
   invisible(TRUE)
 }
-

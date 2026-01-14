@@ -10,22 +10,30 @@ tagr_plot_missingness(df, person = NULL, max_patterns = 30)
 \item{df}{A data.frame containing TeamTV export columns.}
 
 \item{person}{Optional string. If provided, filters to the closest matching
-\code{full_name} (fuzzy match). Use \code{NULL} for all players.}
+full_name using fuzzy match. Use NULL for all players.}
 
-\item{max_patterns}{Maximum number of patterns to display (most frequent kept).}
+\item{max_patterns}{Maximum number of patterns to display most frequent kept.}
 }
 \value{
 A ggplot object.
 }
 \description{
-Pattern-based missingness heatmap (like md.pattern/VIM-style): complete patterns
-on top, then patterns sorted by completeness. Adds percent observed above columns.
+Pattern based missingness heatmap like md.pattern or vim style
+complete patterns are placed at the top then patterns are sorted by completeness
+percent observed is printed above each variable column
 }
 \details{
 Rules:
 \itemize{
-\item Strings like "onbekend" are treated as missing (converted to NA).
-\item \code{leg} is only relevant for type in c("SHORT","LONG","FREEBALL").
-For other shot types, leg is treated as N/A (not missing).
+\item strings like onbekend are treated as missing and converted to na
+\item leg is only relevant for type in c(short long freeball)
+for other shot types leg is treated as not applicable and not counted as missing
+}
+
+Missing data handling:
+\itemize{
+\item unknown tokens like onbekend unknown unk n a na and empty string are converted to na for character columns
+\item rows are not removed for missingness plotting patterns are computed from all rows after cleaning
+\item leg missingness is rule based and only counted when leg is required for the shot type
 }
 }

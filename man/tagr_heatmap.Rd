@@ -29,3 +29,13 @@ A ggplot object.
 Plots shot x/y coordinates on a fixed half korfball pitch background.
 Points are coloured by one of: result, type, pressure, leg.
 }
+\details{
+Missing data handling:
+\itemize{
+\item rows with missing x or y are removed before plotting
+\item for type pressure leg result filters missing values in that column are excluded
+\item if player is a name and df full_name is entirely missing an error is raised
+\item if player is a number and no rows match that number an error is raised
+\item after transforming coordinates out of bounds x y values are clamped to the pitch border
+}
+}

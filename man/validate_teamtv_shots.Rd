@@ -10,13 +10,22 @@ validate_teamtv_shots(x)
 \item{x}{A data.frame with TeamTV tagged shots}
 }
 \value{
-Invisibly returns TRUE if valid; otherwise errors.
+Invisibly returns TRUE if valid otherwise errors
 }
 \description{
 Checks:
 \itemize{
-\item column names: exact match (no missing/extra)
-\item column types: match expected types (with "integer-ish" tolerance)
-\item allowed values for: pressure, type, leg, result (case-insensitive; NA allowed)
+\item column names: exact match no missing or extra columns
+\item column order: must match the expected schema order
+\item column types: match expected types with integerish tolerance for integer columns
+\item allowed values for pressure type leg result case insensitive na allowed
+}
+}
+\details{
+Missing data handling:
+\itemize{
+\item na values are allowed for pressure type leg result and are skipped in allowed value checks
+\item for integerish checks na values are ignored and only non missing values are validated
+\item if an entire column is the wrong type validation errors even if many values are na
 }
 }

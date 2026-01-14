@@ -1,87 +1,122 @@
-test_that("team overview tables rejects non-TeamTV data", {
+# tests for the TeamTV dashboard functions
+# these are unit tests using testthat and the packaged example dataset `shots`
+
+test_that("team dashboard rejects non-TeamTV data", {
+
+  # cars is a base R dataset and should fail schema validation
   testthat::expect_error(
-    tagr_team_overview_tables(cars),
+    tagr_team_dashboad(cars),
     "Column-name mismatch"
   )
 })
 
-test_that("team overview plot rejects non-TeamTV data", {
+test_that("player dashboard rejects non-TeamTV data", {
+
+  # cars is a base R dataset and should fail schema validation
   testthat::expect_error(
-    tagr_team_overview_plot(cars, "distance"),
+    tagr_player_dashboard(cars, player = "1"),
     "Column-name mismatch"
   )
 })
 
-test_that("team overview tables returns expected structure", {
-  tabs <- tagr_team_overview_tables(shots)
+test_that("team dashboard errors on invalid max_players", {
 
-  expect_type(tabs, "list")
-  expect_true(all(c("pressure", "distance", "type", "shot_count", "leg") %in% names(tabs)))
+  # max_players must be a single number >= 1
+  testthat::expect_error(
+    tagr_team_dashboad(shots, max_players = 0),
+    "max_players"
+  )
 
-  for (nm in c("pressure", "distance", "type", "shot_count", "leg")) {
-    expect_s3_class(tabs[[nm]], "data.frame")
-    expect_true(all(c("level", "shots", "goals", "pct_goal") %in% names(tabs[[nm]])))
+  testthat::expect_error(
+    tagr_team_dashboad(shots, max_players = NA),
+    "max_players"
+  )
+})
+
+test_that("player dashboard errors when player is missing", {
+
+  # player is required
+  testthat::expect_error(
+    tagr_player_dashboard(shots),
+    "player"
+  )
+
+  testthat::expect_error(
+    tagr_player_dashboard(shots, player = ""),
+    "player"
+  )
+})
+
+test_that("team dashboard returns patchwork or list of ggplots", {
+
+  out <- tagr_team_dashboad(shots, max_players = 5)
+
+  # if patchwork is installed it returns a patchwork object, otherwise it returns a list of ggplots
+  if (requireNamespace("patchwork", quietly = TRUE)) {
+    expect_true(inherits(out, "patchwork") || inherits(out, "ggplot"))
+  } else {
+    expect_type(out, "list")
+    expect_true(all(vapply(out, inherits, logical(1), "ggplot")))
   }
 })
 
-test_that("team overview tables returns numeric pct_goal within bounds", {
-  tabs <- tagr_team_overview_tables(shots)
+test_that("player dashboard returns patchwork or list of ggplots", {
 
-  for (nm in names(tabs)) {
-    pct <- tabs[[nm]]$pct_goal
-    expect_true(is.numeric(pct))
-    expect_true(all(pct >= 0 & pct <= 100, na.rm = TRUE))
+  nm <- unique(shots$full_name)
+  nm <- nm[!is.na(nm)]
+  testthat::skip_if(length(nm) == 0)
+
+  out <- tagr_player_dashboard(shots, player = nm[1])
+
+  # if patchwork is installed it returns a patchwork object, otherwise it returns a list of ggplots
+  if (requireNamespace("patchwork", quietly = TRUE)) {
+    expect_true(inherits(out, "patchwork") || inherits(out, "ggplot"))
+  } else {
+    expect_type(out, "list")
+    expect_true(all(vapply(out, inherits, logical(1), "ggplot")))
   }
 })
 
-test_that("team overview plot returns a ggplot", {
-  p <- tagr_team_overview_plot(shots, "distance")
-  expect_s3_class(p, "ggplot")
-})
+test_that("player dashboard can filter to one player by number", {
 
-test_that("team overview plot split_by_player returns a ggplot", {
-  testthat::skip_if(all(is.na(shots$full_name)))
-
-  p <- tagr_team_overview_plot(shots, "type", split_by_player = TRUE, max_players = 5)
-  expect_s3_class(p, "ggplot")
-})
-
-test_that("team overview tables can filter to one player by number", {
+  # pick a number that exists and ensure the function runs
   nm <- unique(shots$number)
   nm <- nm[!is.na(nm)]
   testthat::skip_if(length(nm) == 0)
 
-  tabs <- tagr_team_overview_tables(shots, player = nm[1])
-  expect_type(tabs, "list")
-  expect_true(all(c("pressure", "distance", "type", "shot_count", "leg") %in% names(tabs)))
+  out <- tagr_player_dashboard(shots, player = nm[1])
+
+  if (requireNamespace("patchwork", quietly = TRUE)) {
+    expect_true(inherits(out, "patchwork") || inherits(out, "ggplot"))
+  } else {
+    expect_type(out, "list")
+    expect_true(all(vapply(out, inherits, logical(1), "ggplot")))
+  }
 })
 
-test_that("team overview tables can filter to one player by fuzzy name", {
+test_that("player dashboard can filter to one player by fuzzy name", {
+
+  # pick a name fragment and ensure the function runs
   nm <- unique(shots$full_name)
   nm <- nm[!is.na(nm)]
   testthat::skip_if(length(nm) == 0)
 
   frag <- substr(nm[1], 1, max(1, nchar(nm[1]) - 2))
-  tabs <- tagr_team_overview_tables(shots, player = frag)
-  expect_type(tabs, "list")
-  expect_true(all(c("pressure", "distance", "type", "shot_count", "leg") %in% names(tabs)))
+  out <- tagr_player_dashboard(shots, player = frag)
+
+  if (requireNamespace("patchwork", quietly = TRUE)) {
+    expect_true(inherits(out, "patchwork") || inherits(out, "ggplot"))
+  } else {
+    expect_type(out, "list")
+    expect_true(all(vapply(out, inherits, logical(1), "ggplot")))
+  }
 })
 
-test_that("team overview tables split_by_player returns list of players", {
-  testthat::skip_if(all(is.na(shots$full_name)))
+test_that("player dashboard errors on bad fuzzy name", {
 
-  tabs_split <- tagr_team_overview_tables(shots, split_by_player = TRUE, max_players = 3)
-  expect_type(tabs_split, "list")
-  expect_true(length(tabs_split) > 0)
-
-  first <- tabs_split[[1]]
-  expect_type(first, "list")
-  expect_true(all(c("pressure", "distance", "type", "shot_count", "leg") %in% names(first)))
-})
-
-test_that("team overview plot errors on bad attribute", {
+  # a very unlikely name should fail the fuzzy matching threshold
   testthat::expect_error(
-    tagr_team_overview_plot(shots, attribute = "not_an_attribute"),
-    "'arg' should be one of"
+    tagr_player_dashboard(shots, player = "this name should never match"),
+    "No close match"
   )
 })
